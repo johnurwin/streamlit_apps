@@ -5,7 +5,7 @@ import networkx as nx
 import pandas as pd
 
 st.set_page_config(page_title="Project Timeline Estimator", layout="wide")
-st.title("🛠️ Monte Carlo Simulation for Project Timeline Estimation")
+st.title("Monte Carlo Simulation for Project Timeline Estimation")
 
 st.markdown("""
 Estimate your project’s duration under uncertainty using Monte Carlo simulation.  
