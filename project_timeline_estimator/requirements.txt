@@ -1,5 +1,7 @@
 streamlit
+transformers
+pypdf
 numpy
-pandas
 matplotlib
 networkx
+pandas
