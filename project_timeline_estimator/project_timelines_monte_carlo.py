@@ -5,24 +5,21 @@ import networkx as nx
 import pandas as pd
 
 def run():
-    st.set_page_config(page_title="Project Timeline Estimator", layout="wide")
-    st.title("Monte Carlo Simulation for Project Timeline Estimation")
+    st.header("Monte Carlo Simulation for Project Timeline Estimation")
+
+    # Sidebar inputs: Get values from st.session_state or set defaults to avoid re-runs
+    num_tasks = st.sidebar.number_input("Number of Tasks", min_value=1, max_value=20, value=5, step=1)
+    num_simulations = st.sidebar.slider("Number of Simulations", 100, 10000, 1000, step=100)
+    hist_bins = st.sidebar.slider("Histogram Bins", 10, 100, 30, step=5)
+    show_sample_timeline = st.sidebar.checkbox("Show Sample Timeline", value=True)
 
     st.markdown("""
     Estimate your project’s duration under uncertainty using Monte Carlo simulation.  
     Specify tasks, their estimated durations, and dependencies.
     """)
 
-    # --- Sidebar Parameters ---
-    with st.sidebar:
-        st.header("⚙️ Simulation Settings")
-        num_tasks = st.number_input("Number of Tasks", min_value=1, max_value=20, value=5)
-        num_simulations = st.slider("Number of Simulations", 100, 10000, 1000, step=100)
-        hist_bins = st.slider("Histogram Bins", 10, 100, 30, step=5)
-        show_sample_timeline = st.checkbox("Show Sample Timeline", value=True)
-
     # --- Task Input Form ---
-    st.header("Step 1: Define Tasks and Dependencies")
+    st.subheader("Step 1: Define Tasks and Dependencies")
 
     with st.form("task_input_form"):
         task_data = []
@@ -37,14 +34,18 @@ def run():
                 f"Minimum days for {name}",
                 min_value=0.0,
                 value=2.0,
-                key=f"min_{i}"
+                key=f"min_{i}",
+                step=0.1,
+                format="%.2f"
             )
 
             max_days = col2.number_input(
                 f"Maximum days for {name}",
                 min_value=min_days,
                 value=min_days + 3.0,
-                key=f"max_{i}"
+                key=f"max_{i}",
+                step=0.1,
+                format="%.2f"
             )
 
             available_deps = [task["name"] for task in task_data]
@@ -65,9 +66,14 @@ def run():
 
     # --- Simulation ---
     if submitted:
-        st.header("Step 2: Simulation Results")
+        st.subheader("Step 2: Simulation Results")
 
-        task_names = [task["name"] for task in task_data]
+        # Validate task names to avoid empty or duplicates
+        names = [task["name"] for task in task_data]
+        if len(set(names)) != len(names) or any(not n.strip() for n in names):
+            st.error("Task names must be unique and not empty.")
+            return
+
         task_dict = {task["name"]: task for task in task_data}
 
         # Build DAG
@@ -79,7 +85,7 @@ def run():
 
         if not nx.is_directed_acyclic_graph(graph):
             st.error("❌ Task dependencies contain a cycle. Please fix before continuing.")
-            st.stop()
+            return
 
         execution_order = list(nx.topological_sort(graph))
         total_durations = []

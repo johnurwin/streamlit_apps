@@ -3,18 +3,13 @@ from transformers import pipeline
 from pypdf import PdfReader
 
 def run():
-    st.set_page_config(page_title="PDF Question Answering", layout="wide")
-    st.title("📄 PDF Question Answering App")
+    st.header("PDF Question Answering App")
 
     st.markdown("""
-    Upload a PDF and ask a natural language question.  
-    This app uses a transformer model (`distilbert-base-cased-distilled-squad`) to find answers directly from the text.
+    Upload a PDF and ask a question. The model will extract text and attempt to answer your query.
     """)
 
-    # Upload PDF file
     pdf_file = st.file_uploader("Upload a PDF", type="pdf")
-
-    # Ask question
     question = st.text_input("Ask a question about the PDF")
 
     if pdf_file and question:
@@ -25,20 +20,20 @@ def run():
             if text:
                 document_text += text
 
-        if len(document_text.strip()) == 0:
-            st.warning("❗ No extractable text found in the PDF.")
+        if not document_text.strip():
+            st.warning("No extractable text found in PDF.")
             return
 
-        with st.spinner("Finding the answer..."):
+        with st.spinner("Loading model and finding the answer..."):
             try:
-                qa_pipeline = pipeline(
-                    task="question-answering",
-                    model="distilbert-base-cased-distilled-squad"
-                )
+                qa_pipeline = pipeline("question-answering", model="distilbert-base-cased-distilled-squad")
+            except Exception as e:
+                st.error(f"Error loading model: {e}")
+                return
 
+            try:
                 result = qa_pipeline(question=question, context=document_text)
                 st.success("Answer:")
                 st.write(result['answer'])
-
             except Exception as e:
-                st.error(f"Error running model: {str(e)}")
+                st.error(f"Error during question answering: {e}")
