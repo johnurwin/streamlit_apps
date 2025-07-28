@@ -1,6 +1,6 @@
 import streamlit as st
-import monte_carlo
-import pdf_qa
+import project_timelines_monte_carlo
+import pdf_question_answering_app
 
 st.set_page_config(page_title="Streamlit Apps Hub", layout="wide")
 
